@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase';
 import { Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -31,7 +32,17 @@ export const LoginPage = () => {
   const handleGhostLogin = async () => {
     setGhostLoading(true);
     try {
-      await signInAnonymously(auth);
+      const { user } = await signInAnonymously(auth);
+      
+      // Auto-initialize the ghostly document
+      await setDoc(doc(db, 'users', user.uid), {
+        mask: 'ghost',
+        createdAt: new Date().toISOString(),
+        isAnonymous: true,
+        followerCount: 0,
+        followingCount: 0
+      }, { merge: true });
+
       navigate('/');
     } catch (error: any) {
       toast.error('The void rejected you. Try again.');

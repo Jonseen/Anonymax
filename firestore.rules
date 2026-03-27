@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Admin claim helper
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    match /users/{userId} {
+      // Anyone authenticated can read any user profile
+      allow read: if request.auth != null;
+      // Only the owner can update their own profile, or anyone can update their network counters
+      allow update: if request.auth != null && (
+        request.auth.uid == userId || 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerCount', 'followingCount'])
+      );
+      // New user docs created only during registration, or when initializing missing counters
+      allow create: if request.auth != null && (
+        request.auth.uid == userId ||
+        request.resource.data.keys().hasAny(['followerCount', 'followingCount'])
+      );
+    }
+
+    match /posts/{postId} {
+      // Anyone can read posts where isDeleted == false
+      // Added property check fallback to prevent crashes on legacy missing data
+      allow read: if !("isDeleted" in resource.data) || resource.data.isDeleted == false;
+      
+      // Authenticated users can create posts (authorId must match uid)
+      allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
+      
+      // Only the author can update their own posts OR anyone can update counters
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.authorId ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'echoCount', 'commentCount'])
+      );
+      allow delete: if false; // Hard locks actual document deletion out
+
+      match /likes/{userId} {
+        // Authenticated users can read likes
+        allow read: if request.auth != null;
+        // Users can only create/delete their own like document (userId == uid)
+        allow create, delete: if request.auth != null && request.auth.uid == userId;
+      }
+
+      match /comments/{commentId} {
+        // Anyone authenticated can read comments
+        allow read: if request.auth != null;
+        // Authenticated users can create comments
+        allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
+        // Only comment author can update/delete their comment
+        allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorId;
+      }
+    }
+
+    match /follows/{followId} {
+      // Anyone authenticated can read
+      allow read: if request.auth != null;
+      // Either the follower or the person being followed can create
+      // (follower creates directly, followee creates when accepting a request)
+      allow create: if request.auth != null 
+        && (request.resource.data.followerId == request.auth.uid 
+            || request.resource.data.followingId == request.auth.uid);
+      allow delete: if request.auth != null 
+        && (resource.data.followerId == request.auth.uid 
+            || resource.data.followingId == request.auth.uid);
+    }
+
+    match /notifications/{userId}/items/{notifId} {
+      // Users can only read/update/delete their own notifications
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      // Authenticated users can create notifications for others
+      allow create: if request.auth != null;
+    }
+
+    match /saves/{userId}/items/{postId} {
+      // Users can only read/write their own saves
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /reports/{reportId} {
+      // Authenticated users can create reports
+      allow create: if request.auth != null && request.resource.data.reporterId == request.auth.uid;
+      // Only admins can read/update (use a custom claim: admin)
+      allow read, update: if isAdmin();
+    }
+  }
+}

@@ -1,45 +1,41 @@
 import { create } from 'zustand';
-import { signOut, type User } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { type User } from 'firebase/auth';
+import type { UserDoc } from '../lib/firestoreSchema';
 
 interface AuthState {
   user: User | null;
+  userProfile: UserDoc | null;
   isLoading: boolean;
   isAnonymous: boolean;
   setUser: (user: User | null) => void;
+  setUserProfile: (profile: UserDoc | null) => void;
   clearUser: () => void;
 }
 
 const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  isLoading: true, // Initially true while Firebase auth state is determining
+  userProfile: null,
+  isLoading: true,
   isAnonymous: false,
   setUser: (user) => set({
     user,
     isLoading: false,
-    isAnonymous: user?.isAnonymous || false
+    isAnonymous: user?.isAnonymous || false,
   }),
+  setUserProfile: (profile) => set({ userProfile: profile }),
   clearUser: () => set({
     user: null,
+    userProfile: null,
     isLoading: false,
-    isAnonymous: false
+    isAnonymous: false,
   }),
 }));
 
 export const useAuth = () => {
   const store = useAuthStore();
-
-  const logout = async () => {
-    try {
-      await signOut(auth);
-      store.clearUser();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  return {
-    ...store,
-    logout,
-  };
+  return { ...store };
 };
+
+// Direct store access for non-React contexts (services)
+export const getAuthStore = useAuthStore.getState;
+export const subscribeAuth = useAuthStore.subscribe;

@@ -13,6 +13,7 @@ export default {
         surface: 'var(--bg-surface)',
         elevated: 'var(--bg-elevated)',
         primary: 'var(--accent-primary)',
+        secondary: 'var(--accent-secondary)',
         ghost: 'var(--accent-ghost)',
         brandText: 'var(--text-primary)',
         muted: 'var(--text-muted)',
