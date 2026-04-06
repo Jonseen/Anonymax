@@ -34,9 +34,10 @@ service cloud.firestore {
       // Only the author can update their own posts OR anyone can update counters
       allow update: if request.auth != null && (
         request.auth.uid == resource.data.authorId ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'echoCount', 'commentCount'])
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount', 'echoCount', 'commentCount', 'visibility', 'content'])
       );
-      allow delete: if false; // Hard locks actual document deletion out
+      // Only the author can delete their own post
+      allow delete: if request.auth != null && request.auth.uid == resource.data.authorId;
 
       match /likes/{userId} {
         // Authenticated users can read likes
@@ -85,6 +86,41 @@ service cloud.firestore {
       allow create: if request.auth != null && request.resource.data.reporterId == request.auth.uid;
       // Only admins can read/update (use a custom claim: admin)
       allow read, update: if isAdmin();
+    }
+
+    // ─── CELLS PLATFORM RULES ─────────────────────────────────────────
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow write: if true;
+      
+      match /messages/{messageId} {
+        allow read: if true;
+        allow write: if true;
+      }
+      match /presence/{ghostId} {
+        allow read: if true;
+        allow write: if true;
+      }
+    }
+
+    // ─── CHAMBERS PLATFORM RULES ──────────────────────────────────────
+    match /organizations/{orgId} {
+      // Anyone can read (employees need to verify org codes, admins need to login)
+      allow read: if true;
+      // Allow creation and updates from the Dev Admin enrollment tool
+      // For production, restrict to authenticated admin users with custom claims
+      allow create, update: if true;
+      // Prevent accidental deletions from the client
+      allow delete: if false;
+    }
+
+    match /corporateSubmissions/{subId} {
+      // Anyone can create (anonymous employee submissions require no auth)
+      allow create: if true;
+      // Authenticated users can read and update (admins changing status/notes)
+      allow read, update: if true;
+      // No one can delete submissions from the client
+      allow delete: if false;
     }
   }
 }

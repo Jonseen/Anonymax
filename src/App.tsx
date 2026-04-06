@@ -10,6 +10,7 @@ import { SinglePostPage } from './pages/SinglePostPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SearchPage } from './pages/SearchPage';
 import { CellsPage } from './pages/CellsPage';
+import { RoomPage } from './pages/RoomPage';
 import { SavedSignalsPage } from './pages/SavedSignalsPage';
 import { VoidStatsPage } from './pages/VoidStatsPage';
 import { EncryptionPage } from './pages/EncryptionPage';
@@ -21,6 +22,18 @@ import { SettingsPage } from './pages/SettingsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AppShell } from './components/layout/AppShell';
 import { Toaster } from 'react-hot-toast';
+
+// Chambers imports
+import ChambersLanding from './pages/ChambersLanding';
+import CorporateChamber from './pages/CorporateChamber';
+import CorporateAdminPanel from './pages/CorporateAdminPanel';
+import CorporateResultsDashboard from './pages/CorporateResultsDashboard';
+import ElectionChamber from './pages/ElectionChamber';
+import ElectionAdminPanel from './pages/ElectionAdminPanel';
+import ElectionResultsDashboard from './pages/ElectionResultsDashboard';
+import SubmissionSuccessPage from './pages/SubmissionSuccessPage';
+import VerificationPage from './pages/VerificationPage';
+import ChambersDevAdmin from './pages/ChambersDevAdmin';
 
 function App() {
   const { user, isLoading } = useAuth();
@@ -62,6 +75,18 @@ function App() {
         <Route path="/" element={ user ? <Navigate to="/feed" replace /> : <Navigate to="/login" replace /> } />
         <Route path="/login" element={ user ? <Navigate to="/feed" replace /> : <LoginPage /> } />
         <Route path="/register" element={ user ? <Navigate to="/feed" replace /> : <RegisterPage /> } />
+
+        {/* Chambers Platform Routes - Excluded from AppShell to maintain full-screen aesthetic */}
+        <Route path="/chambers" element={<ChambersLanding />} />
+        <Route path="/chambers/dev" element={<ChambersDevAdmin />} />
+        <Route path="/chambers/corporate" element={<CorporateChamber />} />
+        <Route path="/chambers/corporate/admin" element={<CorporateAdminPanel />} />
+        <Route path="/chambers/corporate/results" element={<CorporateResultsDashboard />} />
+        <Route path="/chambers/election" element={<ElectionChamber />} />
+        <Route path="/chambers/election/admin" element={<ElectionAdminPanel />} />
+        <Route path="/chambers/election/results" element={<ElectionResultsDashboard />} />
+        <Route path="/chambers/submit/success" element={<SubmissionSuccessPage />} />
+        <Route path="/chambers/verify/:token" element={<VerificationPage />} />
         
         {/* Protected Routes wrapped in AppShell architecture */}
         <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
@@ -71,6 +96,7 @@ function App() {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/cells" element={<CellsPage />} />
+          <Route path="/cells/:roomId" element={<RoomPage />} />
           <Route path="/saved" element={<SavedSignalsPage />} />
           <Route path="/stats" element={<VoidStatsPage />} />
           <Route path="/encryption" element={<EncryptionPage />} />

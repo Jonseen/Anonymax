@@ -350,3 +350,38 @@ export const onEchoCreated = onDocumentCreated("posts/{echoPostId}", async (even
 
   await batch.commit();
 });
+
+// ─── 10. ENROLL ORGANIZATION (Callable) ─────────────────────────────
+// Backend function for creating Void orgs. Password is bcrypt hashed server-side.
+// Auth is optional — Dev Admin page can enroll without login.
+// For production, re-enable auth + custom claims check below.
+import { onCall, HttpsError } from "firebase-functions/v2/https";
+import * as bcrypt from "bcryptjs";
+
+export const enrollOrganization = onCall(async (request) => {
+  // NOTE: For full production, uncomment to require authentication:
+  // if (!request.auth) {
+  //   throw new HttpsError("unauthenticated", "UNAUTHORIZED ACTION DETECTED.");
+  // }
+  // if (!request.auth.token.superadmin) throw new HttpsError("permission-denied", "Requires Superadmin.");
+
+  const { orgCode, orgName, adminPassword } = request.data;
+  
+  if (!orgCode || !orgName || !adminPassword) {
+    throw new HttpsError("invalid-argument", "Missing required fields.");
+  }
+
+  const codeClean = orgCode.trim().toUpperCase().replace(/\s+/g, '-');
+  
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(adminPassword, salt);
+
+  await db.doc(`organizations/${codeClean}`).set({
+    name: orgName.trim(),
+    adminPasswordHash: hash,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    enrolledBy: request.auth?.uid || "dev-admin"
+  });
+
+  return { success: true, orgCode: codeClean };
+});

@@ -33,12 +33,12 @@ export const SignalsPage = () => {
     <div className="w-full flex flex-col items-center pb-20 pt-4 px-4 md:px-4 lg:px-4 font-mono">
       <div className="w-full max-w-[850px] space-y-8">
         <div className="flex items-center gap-3 mb-6 border-b border-primary/20 pb-4">
-           <div className="w-8 h-8 bg-void border border-primary/50 flex items-center justify-center shadow-[0_0_10px_var(--accent-primary)]">
-              <Activity className="w-4 h-4 text-primary" strokeWidth={1.5} />
-           </div>
-           <h1 className="text-xl font-black text-brandText tracking-[0.15em] uppercase">Active Signals</h1>
+          <div className="w-8 h-8 bg-void border border-primary/50 flex items-center justify-center shadow-[0_0_10px_var(--accent-primary)]">
+            <Activity className="w-4 h-4 text-primary" strokeWidth={1.5} />
+          </div>
+          <h1 className="text-xl font-black text-brandText tracking-[0.15em] uppercase">Active Signals</h1>
         </div>
-        
+
         {loading ? (
           <div className="w-full h-40 flex items-center justify-center text-primary">
             <Loader2 className="w-6 h-6 animate-spin" />
@@ -50,7 +50,7 @@ export const SignalsPage = () => {
             ))}
             {posts.length === 0 && (
               <div className="w-full p-8 border border-ghost bg-surface text-center">
-                 <span className="text-[10px] text-muted tracking-widest uppercase">No frequencies detected</span>
+                <span className="text-[10px] text-muted tracking-widest uppercase">No frequencies detected</span>
               </div>
             )}
           </div>
