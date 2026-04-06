@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Ghost, Eye, Skull, Fingerprint, Scan, Radio, Crosshair, Aperture, X, Loader2 } from 'lucide-react';
+import { Ghost, Eye, Skull, Fingerprint, Scan, Radio, Crosshair, Aperture, X } from 'lucide-react';
 import { useAuth } from '../../store/authStore';
 import { db } from '../../lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
